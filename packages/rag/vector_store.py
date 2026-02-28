@@ -1,7 +1,27 @@
 """벡터 스토어 — ChromaDB 기반 회계 질의회신 검색."""
 
 import json
+import sys
 from pathlib import Path
+
+# Python 3.14+ ChromaDB Pydantic v1 호환 패치
+# chroma_server_nofile 필드의 @validator가 필드 선언보다 먼저 나와
+# PEP 649(deferred annotation evaluation)에서 타입 추론 실패
+if sys.version_info >= (3, 14):
+    try:
+        from chromadb import config as _chroma_cfg
+        _orig_settings = _chroma_cfg.Settings
+        # Settings 클래스를 로드할 때 에러가 나는지 테스트
+        try:
+            _orig_settings()
+        except Exception:
+            # monkey-patch: __annotations__에 누락된 타입을 직접 주입
+            from typing import Optional
+            if not hasattr(_orig_settings, '__annotations__'):
+                _orig_settings.__annotations__ = {}
+            _orig_settings.__annotations__.setdefault('chroma_server_nofile', Optional[int])
+    except Exception:
+        pass
 
 import chromadb
 from chromadb.config import Settings
