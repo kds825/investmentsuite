@@ -19,6 +19,7 @@ from packages.report.generator import generate_markdown, generate_html, save_mar
 from packages.report.legal_report import generate_legal_markdown
 from packages.rag.chat_engine import answer as rag_answer
 from packages.rag.vector_store import initialize_store as init_vector_store
+from packages.core.file_reader import extract_text as extract_file_text
 
 # ─── 페이지 설정 ───
 st.set_page_config(
@@ -564,20 +565,59 @@ st.markdown("""
         margin: 0 auto;
     }
 
-    /* chat input fixed at bottom */
+    /* chat input — 이중 테두리 완전 제거 */
     [data-testid="stChatInput"] {
         max-width: 800px !important;
         margin: 0 auto !important;
+        border: none !important;
+        border-color: transparent !important;
+        box-shadow: none !important;
+        outline: none !important;
+        background: transparent !important;
+    }
+    [data-testid="stChatInput"] > div,
+    [data-testid="stChatInput"] > div > div,
+    [data-testid="stChatInput"] form,
+    [data-testid="stChatInput"] > div > div > div {
+        border: none !important;
+        border-color: transparent !important;
+        box-shadow: none !important;
+        outline: none !important;
+        background: transparent !important;
     }
     [data-testid="stChatInput"] textarea {
+        border: 1px solid #E0E0E0 !important;
         border-radius: 24px !important;
-        padding: 12px 20px !important;
-        border-color: var(--pwc-border) !important;
+        padding: 12px 48px 12px 20px !important;
         font-family: 'Inter', 'Noto Sans KR', sans-serif !important;
+        background: white !important;
+        box-shadow: none !important;
+        outline: none !important;
     }
     [data-testid="stChatInput"] textarea:focus {
-        border-color: var(--pwc-orange) !important;
-        box-shadow: 0 0 0 1px var(--pwc-orange) !important;
+        border: 1px solid var(--pwc-orange) !important;
+        box-shadow: none !important;
+        outline: none !important;
+    }
+    [data-testid="stChatInput"] button[kind="primary"],
+    [data-testid="stChatInput"] button[data-testid="stChatInputSubmitButton"],
+    [data-testid="stChatInput"] button {
+        position: absolute !important;
+        right: 8px !important;
+        bottom: 8px !important;
+        background: var(--pwc-orange) !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 50% !important;
+        width: 32px !important;
+        height: 32px !important;
+        min-width: 32px !important;
+        padding: 0 !important;
+        box-shadow: none !important;
+    }
+    /* 사이드바 상단 여백 */
+    [data-testid="stSidebar"] > div:first-child {
+        padding-top: 2rem !important;
     }
 
     /* back button minimal style for chatbot */
@@ -744,17 +784,21 @@ elif st.session_state.module == "legal":
             key="l_memo",
         )
 
-        l_file = st.file_uploader(
-            "계약서/법무 문서 업로드 (txt)",
-            type=["txt"],
-            help="계약서 텍스트 파일을 업로드하면 분석에 활용합니다.",
-            key="l_file",
+        l_files = st.file_uploader(
+            "계약서/법무 문서 업로드",
+            type=["txt", "pdf", "docx", "xlsx", "xls", "csv"],
+            accept_multiple_files=True,
+            help="PDF, Word, Excel, CSV, TXT 파일을 업로드하면 분석에 활용합니다.",
+            key="l_files",
         )
         l_uploaded = ""
-        if l_file is not None:
-            l_uploaded = l_file.read().decode("utf-8", errors="replace")
-            with st.expander("업로드 파일 미리보기"):
-                st.text(l_uploaded[:3000])
+        if l_files:
+            parts = []
+            for f in l_files:
+                parts.append(f"[파일: {f.name}]\n{extract_file_text(f)}")
+            l_uploaded = "\n\n".join(parts)
+            with st.expander(f"업로드 파일 미리보기 ({len(l_files)}개)"):
+                st.text(l_uploaded[:5000])
 
         st.markdown("<div style='height:12px'></div>", unsafe_allow_html=True)
 
@@ -979,51 +1023,6 @@ elif st.session_state.module == "accounting":
 
             st.markdown("---")
 
-        # LLM 설정
-        st.caption("LLM 설정")
-
-        import os
-        default_key = os.getenv("LLM_API_KEY", os.getenv("OPENAI_API_KEY", ""))
-        default_model = os.getenv("LLM_MODEL", os.getenv("OPENAI_MODEL", "gpt-4"))
-        default_base = os.getenv("LLM_BASE_URL", os.getenv("OPENAI_API_BASE_URL", "https://api.openai.com/v1"))
-
-        api_key = st.text_input(
-            "API Key",
-            value=st.session_state.get("acc_api_key", default_key),
-            type="password",
-            key="input_api_key",
-        )
-        api_model = st.text_input(
-            "Model",
-            value=st.session_state.get("acc_api_model", default_model),
-            key="input_api_model",
-            help="gpt-4o, gemini-2.0-flash, claude-sonnet-4-20250514, llama3.1:8b 등",
-        )
-        api_base = st.text_input(
-            "Base URL",
-            value=st.session_state.get("acc_api_base", default_base),
-            key="input_api_base",
-        )
-
-        # 세션에 저장 + 환경변수 반영 (llm_client가 즉시 참조)
-        st.session_state.acc_api_key = api_key
-        st.session_state.acc_api_model = api_model
-        st.session_state.acc_api_base = api_base
-        os.environ["LLM_API_KEY"] = api_key
-        os.environ["LLM_MODEL"] = api_model
-        os.environ["LLM_BASE_URL"] = api_base
-
-        # 연결 상태 표시
-        is_connected = bool(api_key and len(api_key) > 3)
-        dot_cls = "on" if is_connected else "off"
-        label = api_model if is_connected else "미연결"
-        st.markdown(
-            f'<div class="sb-status"><span class="dot {dot_cls}"></span> {label}</div>',
-            unsafe_allow_html=True,
-        )
-
-        st.markdown("---")
-
         # 홈 버튼
         if st.button("← 홈으로 돌아가기", key="acc_back_sidebar", use_container_width=True):
             st.session_state.module = None
@@ -1243,17 +1242,21 @@ elif st.session_state.module == "investment":
             height=180,
         )
 
-        uploaded_file = st.file_uploader(
-            "파일 업로드 (txt 지원)",
-            type=["txt"],
-            help="텍스트 파일을 업로드하면 보고서 작성에 참고합니다.",
+        uploaded_files = st.file_uploader(
+            "파일 업로드",
+            type=["txt", "pdf", "docx", "xlsx", "xls", "csv"],
+            accept_multiple_files=True,
+            help="PDF, Word, Excel, CSV, TXT 파일을 업로드하면 보고서 작성에 참고합니다.",
         )
 
         uploaded_text = ""
-        if uploaded_file is not None:
-            uploaded_text = uploaded_file.read().decode("utf-8", errors="replace")
-            with st.expander("업로드된 파일 미리보기"):
-                st.text(uploaded_text[:3000])
+        if uploaded_files:
+            parts = []
+            for f in uploaded_files:
+                parts.append(f"[파일: {f.name}]\n{extract_file_text(f)}")
+            uploaded_text = "\n\n".join(parts)
+            with st.expander(f"업로드된 파일 미리보기 ({len(uploaded_files)}개)"):
+                st.text(uploaded_text[:5000])
 
         st.markdown("<div style='height:12px'></div>", unsafe_allow_html=True)
         st.markdown('<div class="pwc-section-title">보고서 모드 선택</div>', unsafe_allow_html=True)
@@ -1457,15 +1460,7 @@ elif st.session_state.module == "investment":
 
             st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
 
-            # ── 법무 심층 분석 & 회계적 영향 연계 ──
-            st.markdown('<div class="pwc-section-title">법무 · 회계 연계 분석</div>', unsafe_allow_html=True)
-            st.markdown(
-                '<div style="font-size:0.88rem;color:#666;margin-bottom:12px;">'
-                '투자보고서 결과를 기반으로 법무 심층 분석(Deal Killer / CoC Map / Indemnity)과 '
-                '회계적 영향 분석을 바로 실행할 수 있습니다.</div>',
-                unsafe_allow_html=True,
-            )
-
+            # ── 공통 컨텍스트 ──
             inv_ctx = {
                 "company_name": st.session_state.get("company_name", ""),
                 "industry": st.session_state.get("industry", ""),
@@ -1474,16 +1469,32 @@ elif st.session_state.module == "investment":
                 "memo": st.session_state.get("memo", ""),
                 "uploaded_text": st.session_state.get("uploaded_text", ""),
             }
-
-            # 세션 초기화
             if "inv_legal_deep" not in st.session_state:
                 st.session_state.inv_legal_deep = None
             if "inv_accounting_impact" not in st.session_state:
                 st.session_state.inv_accounting_impact = None
+            if "inv_final_opinion" not in st.session_state:
+                st.session_state.inv_final_opinion = None
 
-            btn_col1, btn_col2 = st.columns(2)
-            with btn_col1:
-                if st.button("⚖️ 법무 심층 분석 (Legal Deep Dive)", use_container_width=True, type="primary", key="inv_legal_btn"):
+            # ── ① 투자보고서 미리보기 ──
+            st.markdown('<div class="pwc-section-title">① 투자보고서</div>', unsafe_allow_html=True)
+            preview_tab1, preview_tab2 = st.tabs(["Markdown", "HTML"])
+            with preview_tab1:
+                st.markdown(st.session_state.get("report_md", ""))
+            with preview_tab2:
+                st.components.v1.html(st.session_state.report_html, height=800, scrolling=True)
+
+            st.markdown("<div style='height:20px'></div>", unsafe_allow_html=True)
+
+            # ── ② 법무 심층 분석 ──
+            st.markdown('<div class="pwc-section-title">② 법무 검토 (Legal Deep Dive)</div>', unsafe_allow_html=True)
+            if not st.session_state.inv_legal_deep:
+                st.markdown(
+                    '<div style="font-size:0.88rem;color:#666;margin-bottom:12px;">'
+                    '투자보고서 기반으로 Deal Killer / CoC Map / Indemnity 심층 분석을 실행합니다.</div>',
+                    unsafe_allow_html=True,
+                )
+                if st.button("⚖️ 법무 심층 분석 실행", use_container_width=False, type="primary", key="inv_legal_btn"):
                     with st.spinner("Deal Killer 분석 중..."):
                         dk = run_deal_killer(inv_ctx)
                     with st.spinner("CoC Map 분석 중..."):
@@ -1494,17 +1505,34 @@ elif st.session_state.module == "investment":
                         "deal_killer": dk, "coc_map": coc, "indemnity": ind,
                     }
                     st.rerun()
-            with btn_col2:
-                if st.button("📊 회계적 영향 분석 (Accounting Impact)", use_container_width=True, type="primary", key="inv_impact_btn"):
+            else:
+                ld = st.session_state.inv_legal_deep
+                lt1, lt2, lt3 = st.tabs(["Deal Killer", "CoC / Assignment Map", "Indemnity Summary"])
+                with lt1:
+                    st.markdown(ld["deal_killer"])
+                with lt2:
+                    st.markdown(ld["coc_map"])
+                with lt3:
+                    st.markdown(ld["indemnity"])
+
+            st.markdown("<div style='height:20px'></div>", unsafe_allow_html=True)
+
+            # ── ③ 회계적 영향 분석 ──
+            st.markdown('<div class="pwc-section-title">③ 회계 검토 (Accounting Impact)</div>', unsafe_allow_html=True)
+            if not st.session_state.inv_accounting_impact:
+                st.markdown(
+                    '<div style="font-size:0.88rem;color:#666;margin-bottom:12px;">'
+                    '법무 분석 결과와 재무 분석을 연계하여 회계적 영향을 분석합니다.</div>',
+                    unsafe_allow_html=True,
+                )
+                if st.button("📊 회계적 영향 분석 실행", use_container_width=False, type="primary", key="inv_impact_btn"):
                     # 법무 결과 준비
                     if st.session_state.inv_legal_deep:
                         ld = st.session_state.inv_legal_deep
                         legal_text = "\n\n".join([ld["deal_killer"], ld["coc_map"], ld["indemnity"]])
                     else:
-                        # 기본 법무 결과 사용 (orchestrator 결과)
                         legal_text = st.session_state.get("inv_basic_legal", "")
                         if not legal_text:
-                            # orchestrator가 생성한 legal agent 결과 가져오기
                             with st.spinner("기본 법무 분석 실행 중..."):
                                 legal_text = legal_basic_run(inv_ctx)
                             st.session_state.inv_basic_legal = legal_text
@@ -1521,34 +1549,64 @@ elif st.session_state.module == "investment":
                         impact = accounting_impact_run(legal_text, finance_text, inv_ctx)
                     st.session_state.inv_accounting_impact = impact
                     st.rerun()
-
-            # 법무 심층 분석 결과 표시
-            if st.session_state.inv_legal_deep:
-                st.markdown("<div style='height:12px'></div>", unsafe_allow_html=True)
-                ld = st.session_state.inv_legal_deep
-                lt1, lt2, lt3 = st.tabs(["Deal Killer", "CoC / Assignment Map", "Indemnity Summary"])
-                with lt1:
-                    st.markdown(ld["deal_killer"])
-                with lt2:
-                    st.markdown(ld["coc_map"])
-                with lt3:
-                    st.markdown(ld["indemnity"])
-
-            # 회계적 영향 분석 결과 표시
-            if st.session_state.inv_accounting_impact:
-                st.markdown("<div style='height:12px'></div>", unsafe_allow_html=True)
-                st.markdown('<div class="pwc-section-title">회계적 영향 분석 결과</div>', unsafe_allow_html=True)
+            else:
                 st.markdown(st.session_state.inv_accounting_impact)
 
-            st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
+            st.markdown("<div style='height:20px'></div>", unsafe_allow_html=True)
 
-            # 보고서 미리보기
-            st.markdown('<div class="pwc-section-title">보고서 미리보기</div>', unsafe_allow_html=True)
-            preview_tab1, preview_tab2 = st.tabs(["Markdown", "HTML"])
-            with preview_tab1:
-                st.markdown(st.session_state.get("report_md", ""))
-            with preview_tab2:
-                st.components.v1.html(st.session_state.report_html, height=800, scrolling=True)
+            # ── ④ 종합 컨설팅 최종 의견 ──
+            st.markdown('<div class="pwc-section-title">④ 종합 컨설팅 최종 의견</div>', unsafe_allow_html=True)
+            if not st.session_state.inv_final_opinion:
+                st.markdown(
+                    '<div style="font-size:0.88rem;color:#666;margin-bottom:12px;">'
+                    '투자보고서, 법무 검토, 회계 검토 결과를 종합하여 최종 컨설팅 의견을 생성합니다.</div>',
+                    unsafe_allow_html=True,
+                )
+                if st.button("📋 종합 최종 의견 생성", use_container_width=False, type="primary", key="inv_final_btn"):
+                    # 모든 결과 취합
+                    parts = []
+                    parts.append(f"[투자보고서 요약]\n{st.session_state.get('report_md', '')[:3000]}")
+                    if st.session_state.inv_legal_deep:
+                        ld = st.session_state.inv_legal_deep
+                        parts.append(f"[법무 검토 - Deal Killer]\n{ld['deal_killer']}")
+                        parts.append(f"[법무 검토 - CoC Map]\n{ld['coc_map']}")
+                        parts.append(f"[법무 검토 - Indemnity]\n{ld['indemnity']}")
+                    if st.session_state.inv_accounting_impact:
+                        parts.append(f"[회계적 영향 분석]\n{st.session_state.inv_accounting_impact}")
+
+                    from packages.core.llm_client import generate_text
+                    final_system = (
+                        "당신은 PE 투자회사의 시니어 파트너이자 최종 의사결정 자문역입니다.\n"
+                        "아래 투자보고서, 법무 검토, 회계 검토 결과를 종합하여 최종 컨설팅 의견을 작성하세요.\n\n"
+                        "출력 형식 (한국어, 마크다운):\n\n"
+                        "## 종합 컨설팅 최종 의견 (Final Advisory Opinion)\n\n"
+                        "### 1. 종합 투자 판단\n"
+                        "- **최종 등급**: [Green / Yellow / Red]\n"
+                        "- **투자 추천**: [추천 / 조건부 추천 / 보류 / 반대]\n"
+                        "- **핵심 근거** (3~5개)\n\n"
+                        "### 2. 주요 리스크 종합\n"
+                        "| 영역 | 리스크 | 등급 | 대응 방안 |\n"
+                        "|------|--------|------|----------|\n\n"
+                        "### 3. Deal Breaker 체크\n"
+                        "- Deal Breaker 해당 여부 및 근거\n\n"
+                        "### 4. 선행 조건 (Conditions Precedent)\n"
+                        "- 투자 실행 전 반드시 충족해야 할 조건\n\n"
+                        "### 5. 후속 조치 (Next Steps)\n"
+                        "| 우선순위 | 액션 아이템 | 담당 | 기한 |\n"
+                        "|----------|------------|------|------|\n\n"
+                        "### 6. 최종 코멘트\n"
+                        "> 파트너 관점의 종합 의견 (3~5문장)\n\n"
+                        "규칙:\n"
+                        "- 숫자 추정 금지. 정보 없으면 '추가 자료 필요' 표기.\n"
+                        "- 근거는 입력 텍스트 인용만 허용.\n"
+                        "- Green/Yellow/Red 등급만 사용.\n"
+                    )
+                    with st.spinner("종합 최종 의견 생성 중..."):
+                        opinion = generate_text(final_system, "\n\n".join(parts))
+                    st.session_state.inv_final_opinion = opinion
+                    st.rerun()
+            else:
+                st.markdown(st.session_state.inv_final_opinion)
 
         # 이전 단계로
         st.markdown("<div style='height:12px'></div>", unsafe_allow_html=True)

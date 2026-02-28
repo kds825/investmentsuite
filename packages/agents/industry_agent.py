@@ -14,8 +14,6 @@ SYSTEM_PROMPT = """\
 
 출력 형식:
 
-## 산업 분석 (Industry Analysis)
-
 ### 1. 산업 개요 (Industry Overview)
 
 | 항목 | 내용 | 근거/출처 |

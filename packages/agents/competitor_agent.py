@@ -14,8 +14,6 @@ SYSTEM_PROMPT = """\
 
 출력 형식:
 
-## 경쟁사 분석 (Competitive Analysis)
-
 ### 1. 경쟁 구도 개요
 
 | 항목 | 내용 | 근거/출처 |
