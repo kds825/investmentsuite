@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 
 import chromadb
+from chromadb.config import Settings
 
 # 경로 설정
 _DATA_DIR = Path(__file__).resolve().parent.parent.parent / "data" / "accounting_qa"
@@ -19,7 +20,16 @@ def _get_collection():
     """ChromaDB 컬렉션 반환 (싱글턴)."""
     global _client, _collection
     if _collection is None:
-        _client = chromadb.PersistentClient(path=str(_CHROMA_DIR))
+        try:
+            _client = chromadb.PersistentClient(path=str(_CHROMA_DIR))
+        except Exception:
+            # Pydantic v2 호환 이슈 우회: Settings를 직접 지정
+            settings = Settings(
+                persist_directory=str(_CHROMA_DIR),
+                anonymized_telemetry=False,
+                is_persistent=True,
+            )
+            _client = chromadb.Client(settings)
         _collection = _client.get_or_create_collection(
             name=_COLLECTION_NAME,
             metadata={"hnsw:space": "cosine"},

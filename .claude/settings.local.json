@@ -5,7 +5,9 @@
       "Bash(curl:*)",
       "Bash(python:*)",
       "Bash(PYTHONIOENCODING=utf-8 python:*)",
-      "Bash(tasklist:*)"
+      "Bash(tasklist:*)",
+      "Bash(pip show:*)",
+      "Bash(rm:*)"
     ]
   }
 }
