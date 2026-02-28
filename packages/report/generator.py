@@ -1,5 +1,5 @@
 """Report Generator — Markdown / HTML / Word 보고서를 생성한다."""
-
+from __future__ import annotations
 import os
 import re
 from datetime import datetime
