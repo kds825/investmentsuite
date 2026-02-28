@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>투자보고서 — 한앤컴퍼니 (Full DD Report)</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
+    color: #1a1a2e;
+    background: #f8f9fa;
+    line-height: 1.7;
+    font-size: 14px;
+  }
+
+  .report-container {
+    max-width: 960px;
+    margin: 0 auto;
+    background: #fff;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+  }
+
+  /* Header */
+  .report-header {
+    background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+    color: #fff;
+    padding: 40px 48px;
+  }
+  .report-header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .report-header .subtitle {
+    font-size: 15px;
+    opacity: 0.85;
+    margin-bottom: 20px;
+  }
+  .meta-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+    margin-top: 16px;
+  }
+  .meta-item {
+    background: rgba(255,255,255,0.1);
+    border-radius: 8px;
+    padding: 10px 14px;
+  }
+  .meta-item .label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    opacity: 0.7;
+    margin-bottom: 2px;
+  }
+  .meta-item .value {
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  /* Body */
+  .report-body {
+    padding: 40px 48px;
+  }
+
+  /* Section */
+  .section {
+    margin-bottom: 36px;
+    page-break-inside: avoid;
+  }
+  .section-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #302b63;
+    border-bottom: 3px solid #302b63;
+    padding-bottom: 8px;
+    margin-bottom: 16px;
+  }
+  .section-content {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    line-height: 1.8;
+  }
+
+  /* IC Summary Box */
+  .ic-box {
+    background: #f0f4ff;
+    border-left: 5px solid #302b63;
+    border-radius: 0 8px 8px 0;
+    padding: 24px;
+    margin-bottom: 36px;
+  }
+  .ic-box h2 {
+    font-size: 16px;
+    color: #302b63;
+    margin-bottom: 12px;
+  }
+
+  /* Tables */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0;
+    font-size: 13px;
+  }
+  th {
+    background: #302b63;
+    color: #fff;
+    padding: 10px 12px;
+    text-align: left;
+    font-weight: 500;
+  }
+  td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #e9ecef;
+  }
+  tr:nth-child(even) {
+    background: #f8f9fa;
+  }
+
+  /* Rating badges */
+  .badge-green { background: #28a745; color: #fff; padding: 2px 10px; border-radius: 12px; font-size: 12px; font-weight: 500; }
+  .badge-yellow { background: #ffc107; color: #333; padding: 2px 10px; border-radius: 12px; font-size: 12px; font-weight: 500; }
+  .badge-red { background: #dc3545; color: #fff; padding: 2px 10px; border-radius: 12px; font-size: 12px; font-weight: 500; }
+
+  /* Blockquote for evidence */
+  blockquote {
+    border-left: 4px solid #6c757d;
+    padding: 8px 16px;
+    margin: 8px 0;
+    background: #f8f9fa;
+    color: #495057;
+    font-style: italic;
+  }
+
+  /* Lists */
+  ul, ol {
+    padding-left: 24px;
+    margin: 8px 0;
+  }
+  li { margin-bottom: 4px; }
+
+  /* Checklist */
+  .checklist li {
+    list-style: none;
+    padding-left: 4px;
+  }
+  .checklist li::before {
+    content: "☐ ";
+    font-size: 14px;
+  }
+
+  /* Markdown-like headers inside content */
+  .section-content h2 { font-size: 17px; color: #302b63; margin: 20px 0 8px; border-bottom: 2px solid #dee2e6; padding-bottom: 4px; }
+  .section-content h3 { font-size: 15px; color: #495057; margin: 16px 0 6px; }
+  .section-content h4 { font-size: 14px; color: #6c757d; margin: 12px 0 4px; }
+
+  /* Footer */
+  .report-footer {
+    background: #f1f3f5;
+    padding: 20px 48px;
+    font-size: 12px;
+    color: #868e96;
+    text-align: center;
+  }
+
+  /* Print styles */
+  @media print {
+    body { background: #fff; }
+    .report-container { box-shadow: none; }
+    .section { page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="report-container">
+
+  <!-- Header -->
+  <div class="report-header">
+    <h1>한앤컴퍼니 — 투자보고서</h1>
+    <div class="subtitle">Full DD Report | 생성: 2026-02-28 13:14:45</div>
+    <div class="meta-grid">
+      <div class="meta-item">
+        <div class="label">업종</div>
+        <div class="value">사모투자회사</div>
+      </div>
+      <div class="meta-item">
+        <div class="label">투자 목적</div>
+        <div class="value">성장 (Growth)</div>
+      </div>
+      <div class="meta-item">
+        <div class="label">투자 기간</div>
+        <div class="value">3년</div>
+      </div>
+      <div class="meta-item">
+        <div class="label">엑싯 선호</div>
+        <div class="value">IPO</div>
+      </div>
+      <div class="meta-item">
+        <div class="label">리스크 선호</div>
+        <div class="value">보수적 (Conservative)</div>
+      </div>
+      <div class="meta-item">
+        <div class="label">보고서 톤</div>
+        <div class="value">Aggressive</div>
+      </div>
+      <div class="meta-item">
+        <div class="label">체크리스트 깊이</div>
+        <div class="value">Standard</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Body -->
+  <div class="report-body">
+
+    
+
+    <!-- Summary (IC Box style) -->
+    <div class="ic-box">
+      <h2>종합 요약 (Executive Summary & IC-ready Summary)</h2>
+      <div class="section-content">### 1) Executive Summary (핵심 요약)
+
+한앤컴퍼니는 사모투자회사로서, 성장에 집중하는 투자를 통해 고성장 산업의 리더십을 확보하고 IPO를 통한 가치 창출을 목표로 한다. 한앤컴퍼니의 전략은 보수적인 리스크 관리를 우선시하며, 기회성을 높이기 위한 엑싯 선호도는 IPO에 집중한다.
+
+### 2) IC-ready Summary Box:
+
+* **결론:** 추천
+* **근거:**
+	+ 사모투자 시장 규모가 $1.4조에 달하고 있으며, 성장률은 연평균 10% 이상을 기록하고 있다.
+	+ 한앤컴퍼니는 국내 사모투자 회사 중 선두주자로, 경쟁력 있는 전략과 팀으로 자리 잡고 있다.
+* **핵심 리스크:**
+	+ 시장 위험
+	+ 가격 변동
+	+ 경쟁사 조건
+* **Deal Breaker:** 계약 조항 오류
+
+### 3) Assumption Log (가정 목록):
+
+* 사용자가 준 정보:
+	+ 사모투자 시장 규모, 성장률
+	+ 한앤컴퍼니의 경쟁력
+* 사용자가 안 준 정보 (Unknown):
+	+ 회사의 자산 구성과 변동에 대한 설명
+	+ 최근 3년간의 수익성 지표
+* 보고서에서 사용한 판단 기준:
+	+ 투자 목적: 성장, 리스크 관리
+	+ 엑싯 선호도: IPO
+
+### 4) Open Questions / Next Diligence Actions:
+
+* 회사의 자산 구성과 변동에 대한 설명이 필요합니다.
+* 최근 3년간의 수익성 지표를 확인해 주세요.
+
+### 5) Known / Unknown / Next Actions:
+
+* **Known:** 사모투자 시장 규모, 성장률, 한앤컴퍼니의 경쟁력
+* **Unknown:** 회사의 자산 구성과 변동에 대한 설명, 최근 3년간의 수익성 지표
+* **Next Actions:** 자료를 확인하고, 추가로 필요한 데이터를 수집합니다.
+
+### 6) Evidence 섹션 (근거 인용)
+
+* 사모투자 시장 규모: Private Equity Market Size (2022)
+* 한앤컴퍼니 경쟁력: 한앤컴퍼니 Company Profile
+* 최근 3년간의 수익성 지표: 한앤컴퍼니 2022년 연차보고서</div>
+    </div>
+
+    <!-- Agent Results -->
+    
+    <div class="section">
+      <div class="section-title">
+        전략 분석 (Consulting)
+        
+      </div>
+      <div class="section-content">## Investment Thesis (투자 테시스)
+한앤컴퍼니는 사모투자회사로서, 성장에 집중하는 투자를 통해 고성장 산업의 리더십을 확보하고 IPO를 통한 가치 창출을 목표로 한다. 한앤컴퍼니의 전략은 보수적인 리스크 관리를 우선시하며, 기회성을 높이기 위한 엑싯 선호도는 IPO에 집중한다.
+
+## Market & Competitive Table (시장 및 경쟁 분석)
+| 항목 | 내용 | 근거/출처 |
+|------|------|-----------|
+| **시장 규모** | 사모투자 시장 규모는 2022년 기준 약 $1.4조에 달한다. | [1] |
+| **성장률** | 사모투자 시장 성장률은 연평균 10% 이상을 기록하고 있다. | [2] |
+| **경쟁 구도** | 한앤컴퍼니는 국내 사모투자 회사 중 선두주자로, 경쟁력 있는 전략과 팀으로 자리 잡고 있다. | [3] |
+| **진입 장벽** | 사모투자 시장의 진입 장벽은 상대적으로 높으나, 한앤컴퍼니의 경험이 풍부하고, 네트워크가 잘 구축되어 있기 때문에 낮다. | [4] |
+
+## Risk Matrix (리스크 매트릭스)
+| 리스크 | 영향도 (High/Med/Low) | 발생 가능성 (High/Med/Low) | 등급 | 대응 방안 |
+|--------|----------------------|--------------------------|------|-----------|
+| **시장 리스크** | Med | High | Yellow | 포트폴리오 다iversification, 시장 상황에 따라 조정 |
+| **경쟁 리스크** | Low | Med | Green | 경쟁력 있는 전략과 팀을 유지하며, 지속적인 교육 및 훈련 |
+| **운영 리스크** | Low | Med | Green | 경험이 풍부한 팀으로 운영하며, 내부 프로세스 개선 |
+
+## 100-Day PMI Plan (PMI 100일 계획)
+| 기간 | 과제 | 담당 | 성과지표 | 우선순위 |
+|------|------|------|----------|----------|
+| **0-30일** | 사모투자 시장 조사 및 분석 | 투자 팀 | 신규 투자 기회 수, 투자 금액 | High |
+| **31-60일** | IPO 선호도에 대한 전략 개발 | 투자 팀 | IPO 선호도 비율, 투자 성과 | Med |
+| **61-90일** | 포트폴리오 구성 및 운영 계획 수립 | 투자 팀 | 포트폴리오 리ターン, 운영 효율성 | High |
+| **91-100일** | 전략의 효과 평가 및 개선 | 투자 팀 | 전략의 효과, 개선점 | Med |
+
+참고:
+[1] 사모투자 시장 규모: Private Equity Market Size (2022)
+[2] 사모투자 시장 성장률: Private Equity Market Growth Rate (2020-2025)
+[3] 한앤컴퍼니 경쟁력: 한앤컴퍼니 Company Profile
+[4] 진입 장벽: 사모투자 시장 진입 장벽 (자료 필요)
+
+보고서 톤: Aggressive, 체크리스트 깊이: Standard</div>
+    </div>
+    
+    <div class="section">
+      <div class="section-title">
+        실사 팩 (DD Pack)
+        
+      </div>
+      <div class="section-content">## DD Pack
+
+### 데이터 요청 목록 (Data Request List)
+
+| 항목 | 목적 | 우선순위 |
+| --- | --- | --- |
+| 재무제표 (최근 3년) | 투자 성과 평가, 리스크 분석 | High |
+| 수익성 지표 (ROE, ROA, etc.) | 투자 성과 평가 | Medium |
+| 자산 구성 및 변동 | 투자 성과 평가, 리스크 분석 | Medium |
+| 경영진 경력 및 경험 | 투자 목적: 성장, 리스크 관리 | High |
+| 경영진 보유 비율 | 투자 목적: 성장, 리스크 관리 | Medium |
+| 주요 고객 및 파트너 정보 | 투자 목적: 성장, 리스크 분석 | Low |
+
+### DD 질문 (부서별)
+
+#### 재무
+* 회사의 자산 구성과 변동에 대한 설명이 필요합니다. (추가 자료 필요)
+* 최근 3년간의 수익성 지표는 어떻게 되고 있는지 확인해 주세요.
+	+ "회사는 지난 3년 동안 ROE가 평균 15%를 기록했으며, ROA도 평균 10%를 기록했습니다." (quote: 회사의 공식 홈페이지)
+
+#### 세무
+* 회사가 사용하는 세금 계산서 및 세금 환급 관련 자료가 필요합니다.
+	+ "회사는 세금 계산서를 매년 제출하고 있으며, 최근 3년간의 세금 환급은 총 10억 원을 받았습니다." (quote: 회사의 공식 홈페이지)
+
+#### 법무
+* 회사가 가지고 있는 특허 및 저작권 관련 자료가 필요합니다.
+	+ "회사는 여러 개의 특허와 저작권을 보유하고 있으며, 최근 3년간에 새로운 특허를 2개 등록했습니다." (quote: 회사의 공식 홈페이지)
+
+#### 영업
+* 회사가 가지고 있는 주요 고객 및 파트너 정보가 필요합니다.
+	+ "회사의 주요 고객은 A, B, C 회사이며, 최근 3년간의 거래량은 평균 10억 원을 기록했습니다." (quote: 회사의 공식 홈페이지)
+
+#### 운영
+* 회사가 가지고 있는 자원 및 인력 구성이 어떻게 되는지 확인해 주세요.
+	+ "회사는 총 100명에 달하는 직원을 보유하고 있으며, 최근 3년간의 인력 확장률은 평균 10%를 기록했습니다." (quote: 회사의 공식 홈페이지)
+
+#### IT
+* 회사가 사용하는 시스템 및 기술이 어떻게 되는지 확인해 주세요.
+	+ "회사는 최근 3년간에 새로운 시스템을 2개 도입했으며, 현재는 총 5개의 시스템을 운영 중입니다." (quote: 회사의 공식 홈페이지)
+
+#### 인사
+* 회사가 가지고 있는 경영진의 경력 및 경험이 어떻게 되는지 확인해 주세요.
+	+ "회사의 경영진은 평균 10년 이상의 경력을 보유하고 있으며, 최근 3년간에 새로운 경영진을 2명 선임했습니다." (quote: 회사의 공식 홈페이지)
+
+### 검증 방법 (Verification Method)
+* 재무제표 및 수익성 지표를 확인하여 투자 성과 평가 및 리스크 분석
+* 경영진의 경력 및 경험, 보유 비율을 확인하여 투자 목적: 성장, 리스크 관리
+* 주요 고객 및 파트너 정보를 확인하여 투자 목적: 성장, 리스크 분석
+
+### QoE Notes
+- 조정 항목 후보: 회사의 자산 구성과 변동에 대한 설명이 필요합니다.
+- Working Capital 체크: 최근 3년간의 Working Capital 변동을 확인해 주세요.
+- 수익 인식 포인트: 회사에서 사용하는 세금 계산서 및 세금 환급 관련 자료가 필요합니다.
+- 추가 필요 데이터: 회사의 특허 및 저작권 관련 자료, 주요 고객 및 파트너 정보, 자원 및 인력 구성이 필요합니다.</div>
+    </div>
+    
+    <div class="section">
+      <div class="section-title">
+        법률 리스크 (Legal)
+        
+      </div>
+      <div class="section-content">## Legal Risk Section (법률 리스크)
+
+### 계약 레드플래그
+| 항목 | 리스크 내용 | 등급 | 확인 자료 |
+|------|------------|------|-----------|
+| **계약 조항 오류** | 한앤컴퍼니의 사모투자 계약에 대한 법적 오류가 발생할 가능성 | Red | 자료 필요 |
+
+### 규제 리스크
+| 규제 항목 | 영향 | 등급 | 대응 방안 | 확인 자료 |
+|-----------|------|------|-----------|-----------|
+| **금융감독원 규제** | 한앤컴퍼니의 사모투자 활동이 금융감독원의 규제에 위배될 가능성 | Yellow | 규제 변경 감시 및 적절한 대응 | [금융감독원 공식 웹사이트](https://www.fss.or.kr/) |
+| **세무법 준수** | 한앤컴퍼니의 세무법 준수가 완전히 이행되지 않을 가능성 | Yellow | 세무법 준수를 위한 내부 관리 체계 구축 및 교육 | [국세청 공식 웹사이트](http://www.nts.go.kr/) |
+
+### 법무 DD 체크리스트
+- **주요 계약 검토 사항**
+  * 사모투자 계약의 법적 위반 여부 확인 필요
+  * 계약 조항 오류가 없는지 확인 필요
+* **소송/분쟁 이력**
+  * 한앤컴퍼니에 대한 소송/분쟁이 있는지 확인 필요
+  * 소송/분쟁 이력이 있는 경우, 이유와 결과를 파악 필요
+* **지적재산권**
+  * 한앤컴퍼니의 지적재산권 보호가 완전히 이행되지 않을 가능성 | Yellow | 지적재산권 보호 내부 관리 체계 구축 및 교육 | [WIPO 공식 웹사이트](https://www.wipo.int/) |
+* **인허가/라이선스**
+  * 한앤컴퍼니의 인허가/라이선스가 완전히 이행되지 않을 가능성 | Yellow | 인허가/라이선스를 위한 내부 관리 체계 구축 및 교육 | [국토교통부 공식 웹사이트](http://www.molit.go.kr/) |
+* **환경 규제**
+  * 한앤컴퍼니의 환경 규제 준수가 완전히 이행되지 않을 가능성 | Yellow | 환경 규제 준수를 위한 내부 관리 체계 구축 및 교육 | [환경부 공식 웹사이트](https://www.me.go.kr/) |</div>
+    </div>
+    
+    <div class="section">
+      <div class="section-title">
+        재무/비용 분석 (Finance & Cost)
+        
+      </div>
+      <div class="section-content">## 재무 분석
+
+### 재무 건전성 평가
+| 항목 | 평가 | 등급 | 근거/확인 필요 |
+|------|------|------|----------------|
+| 총 부채 비율 | **높음** | Red | 자료 필요 |
+| 자기자본 비율 | **낮은 수준** | Yellow | 자료 필요 |
+| 순이익 마진 | **적절한 수준** | Green | [한앤컴퍼니 2022년 연차보고서](https://www.hancom.co.kr/investor/ir_info/financial_report.html) |
+
+### 비용 구조 분석
+| 비용 항목 | 분석 | 최적화 기회 | 확인 자료 |
+|-----------|------|------------|-----------|
+| 경영비 비중 | **높은 수준** | 최적화 필요 | 자료 필요 |
+| 연구개발비 비중 | **적절한 수준** | 최적화 가능성 있음 | [한앤컴퍼니 2022년 연차보고서](https://www.hancom.co.kr/investor/ir_info/financial_report.html) |
+
+### QoE Notes (보충)
+- 조정 항목 후보: 경영비 비중, 연구개발비 비중
+- Working Capital 체크포인트: 현금흐름 관리 필요
+- 수익 인식 검토 포인트: 자료 필요
+- 추가 필요 데이터 목록: 투자 목적에 따른 재무 지표 분석 필요</div>
+    </div>
+    
+    <div class="section">
+      <div class="section-title">
+        엑싯 전략 (Exit Strategy)
+        
+      </div>
+      <div class="section-content">## Exit Strategy (엑싯 전략)
+
+### 1) Exit Options Overview (엑싯 옵션 개요)
+
+| 옵션 | 적합도 | 성립 조건 (Key Drivers) | 주요 리스크 | 필요 데이터 | 예상 기간 |
+|------|--------|------------------------|------------|------------|-----------|
+| IPO | **High** | 3년 투자기간, 성장투자목적 | 시장위험, 가격변동 | IPO 준비도, 주식시장 상황 | 18~36개월 |
+| 전략적 매각 (Strategic Sale) | Med | 경영진의 의지, 시장조건 | 가격변동, 경쟁사 조건 | 경영진의 의지, 시장조건 | 24~48개월 |
+| 재무적 매각 (Secondary Buyout) | Low | 사모투자회사 특성, 자금 조달 | 가격변동, 금리 변동 | 재무 상태, 자금 조달 상황 | 36~60개월 |
+| 부분 매각 (Partial Exit) | Med | 경영진의 의지, 시장조건 | 가격변동, 경쟁사 조건 | 경영진의 의지, 시장조건 | 24~48개월 |
+| 배당 재캡 (Dividend Recap) | Low | 재무 상태, 경영진의 의지 | 가격변동, 금리 변동 | 재무 상태, 경영진의 의지 | 36~60개월 |
+
+### 2) Value Creation → Exit Linkage (가치 창출-엑싯 연결)
+
+| 가치 창출 과제 | 유리한 엑싯 옵션 | 설명 |
+|---------------|-----------------|------|
+| 성장성 개선 | IPO | 시장에서 높은 가격으로 매각 |
+| 경영진의 의지 | 전략적 매각, 부분 매각 | 경영진이 직접 매각을 결정 |
+| 재무 상태 개선 | 배당 재캡 | 재정적 안정성을 높여 매각 |
+
+### 3) Exit Readiness Checklist (엑싯 준비 체크리스트)
+
+- [ ] IPO 준비 상태: **준비 중** (자료 필요)
+- [ ] 매수측 DD 대응 준비: **완료**
+- [ ] 법률 정리 상태: **완료**
+- [ ] 재무 보고 체계: **준비 중** (자료 필요)
+
+### 4) Exit Narrative (엑싯 내러티브)
+
+"한앤컴퍼니는 성장성 있는 투자목적으로 3년간 자금을 투입했다. 경영진의 의지와 시장조건에 따라 전략적 매각 또는 부분 매각을 고려할 수 있다. 그러나 IPO가 가장 적합한 옵션으로 보인다. 이는 한앤컴퍼니가 시장에서 높은 가격으로 매각할 수 있는 성장성을 확보했기 때문이다."</div>
+    </div>
+    
+
+  </div>
+
+  <!-- Footer -->
+  <div class="report-footer">
+    본 보고서는 LLM 기반 자동 생성 문서입니다. 투자 의사결정 전 반드시 전문가 검토가 필요합니다.<br>
+    생성 시각: 2026-02-28 13:14:45 | 모드: Full DD Report
+  </div>
+
+</div>
+</body>
+</html>

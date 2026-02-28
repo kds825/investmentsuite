@@ -1,0 +1,225 @@
+너는 Claude Code 환경에서 동작하는 시니어 풀스택 엔지니어이자
+PE 투자회사용 LLM Agent 아키텍트다.
+
+목표:
+Streamlit 기반 "투자보고서 자동 생성 MVP"를 실제 실행 가능한 코드로 완성하라.
+이 앱은 일반 챗봇 수준이 아니라, 투자사 애널리스트 업무 산출물 수준의 보고서를 생성해야 한다.
+
+────────────────────────────
+[핵심 유스케이스]
+
+사용자가 Streamlit 화면에서
+- 회사명
+- 업종
+- 투자 목적 (성장/턴어라운드/볼트온)
+- 투자 기간(예: 3년/5년)
+- 엑싯 선호 (IPO / 전략적 매각 / 재무적 매각 / 부분매각 / 배당재캡)
+- 리스크 선호도 (보수/중립/공격)
+- 자유 메모
+- 선택 파일 업로드(txt 최소 지원)
+
+를 입력하면,
+
+다음 3가지 모드 중 하나로 보고서를 생성한다:
+1) IC Memo (1페이지 요약)
+2) Full DD Report
+3) Legal + Finance Appendix
+
+출력:
+- 정교한 HTML 투자보고서
+- PDF 파일 저장 (가능하면)
+- outputs/ 폴더에 저장
+- Streamlit 화면에 미리보기 + 다운로드 버튼 제공
+
+────────────────────────────
+[반드시 지킬 조건]
+
+1) 회사 PC에서 git clone 후 바로 실행 가능
+2) LLM 연결은 반드시 아래 환경변수 3개만 사용
+   - OPENAI_API_KEY
+   - OPENAI_MODEL
+   - OPENAI_API_BASE_URL
+3) OPENAI_API_BASE_URL은 OpenAI-compatible endpoint일 수 있으므로
+   base_url을 적용해 chat completion 호출
+4) 외부 인터넷 없이도 동작해야 함 (웹 검색 금지)
+5) 숫자 추정 금지. 모르면 "추가 자료 필요" 명시
+6) 투자 판단은 과장 금지. 근거/확인 필요 사항을 분리해 명확히 표기
+
+────────────────────────────
+[아키텍처 요구]
+
+구조:
+- Orchestrator
+- DD Agent
+- Consulting Agent
+- Legal Agent
+- FinanceCost Agent
+- ExitStrategy Agent (추가)
+- Report Generator
+
+레포 구조:
+/apps/web/app.py
+/packages/core/llm_client.py
+/packages/agents/dd_agent.py
+/packages/agents/consulting_agent.py
+/packages/agents/legal_agent.py
+/packages/agents/finance_cost_agent.py
+/packages/agents/exit_strategy_agent.py
+/packages/agents/orchestrator.py
+/packages/report/generator.py
+/packages/report/templates/report.html.j2
+/outputs/
+/requirements.txt
+/.env.example
+/README.md
+
+────────────────────────────
+[애널리스트 업무 스타일(매우 중요)]
+
+보고서는 "읽는 문서"를 넘어 "업무에 바로 쓰는 산출물"처럼 보여야 한다.
+
+반드시 포함할 Analyst Workflow 기능:
+A) Assumption Log (가정 목록)
+- 사용자가 준 정보
+- 사용자가 안 준 정보(Unknown)
+- 보고서에서 사용한 판단 기준(룰)
+
+B) Open Questions / Next Diligence Actions
+- 바로 실행 가능한 다음 행동 목록
+
+C) IC-ready Summary Box
+- 결론(추천/보류/반대)
+- 근거 3개
+- 핵심 리스크 3개
+- Deal Breaker(거래 중단 조건) 1~3개
+
+D) Versioning / Timestamp
+- 보고서 상단에 생성시각, 입력 요약을 표시
+
+E) Evidence(근거 인용) 강제
+- 입력 텍스트에서 quote 형태로 인용
+- 근거 없으면 "자료 필요"로 표기
+
+────────────────────────────
+[보고서 품질 필수 요소 — 챗봇과 차별화]
+
+반드시 포함해야 할 섹션:
+
+1) Executive Summary
+2) IC-ready Summary Box (추천/보류/반대 + Deal Breakers)
+3) Investment Thesis
+4) Market & Competitive Table (표 형태)
+5) Risk Matrix (Impact x Likelihood 2x2 매트릭스)
+6) DD Pack
+   - Data Request List
+   - DD Questions (부서별: 재무/세무/법무/영업/운영/IT/인사)
+   - Verification Method(어떤 자료로 확인할지)
+7) QoE Notes
+   - 조정 항목 후보
+   - Working Capital 체크
+   - 수익 인식 포인트
+   - "추가 필요 데이터" 명시
+8) Legal Risk Section
+   - 계약 레드플래그
+   - 규제 리스크
+9) 100-Day PMI Plan
+10) Exit Strategy (필수, 자세히)
+11) Known / Unknown / Next Actions
+12) Assumption Log (필수)
+13) Evidence 섹션 (필수)
+
+────────────────────────────
+[Exit Strategy 섹션 요구사항 (핵심)]
+
+ExitStrategy Agent는 아래 내용을 구조화해서 생성한다.
+
+1) Exit Options Overview (표)
+- IPO
+- Strategic Sale (전략적 매각)
+- Secondary Buyout (재무적 매각)
+- Partial Exit (부분 매각)
+- Dividend Recap (배당 재캡)
+
+각 옵션별:
+- Fit(적합도): High/Med/Low (숫자 점수 금지)
+- Key Drivers(성립 조건)
+- Key Risks(주요 리스크)
+- Data Needed(필요 데이터)
+- Typical Timeline(대략적 기간 범위: 예: 18~36 months 같은 범위 표현은 허용)
+
+2) Value Creation → Exit Linkage
+- “어떤 가치 창출 과제(예: 비용 구조, 성장, 거버넌스)가 어떤 엑싯에 유리한지” 연결
+
+3) Exit Readiness Checklist
+- IPO readiness
+- Buy-side DD readiness
+- Legal cleanup readiness
+- Financial reporting readiness
+체크리스트 형태로 제공
+
+4) Exit Narrative (스토리라인)
+- “왜 우리가 이 회사를 샀고, 무엇을 바꿔서, 누가 사게 만들지” 5~7줄 내러티브
+
+주의:
+- 외부 데이터 없으면 추정하지 말고, ‘필요 데이터’를 명시한다.
+
+────────────────────────────
+[평가 방식]
+
+숫자 점수 금지.
+대신 다음 등급 사용:
+- Green
+- Yellow
+- Red
+
+등급 판단 기준을 보고서에 명시하라.
+또한 Deal Breaker 조건이 하나라도 충족되면 Red로 가는 룰을 포함하라.
+
+────────────────────────────
+[Streamlit UI 요구]
+
+- 위저드 형태 입력 UI (단계별)
+  1) Company Basics
+  2) Deal Preferences (투자 목적/기간/엑싯 선호/리스크 성향)
+  3) Inputs (메모/파일 업로드)
+  4) Output Mode (IC Memo / Full DD / Appendix)
+- 진행상태 표시 (에이전트별)
+- HTML 미리보기
+- PDF 다운로드 버튼
+- 에러 메시지는 사용자 친화적으로 표시
+
+추가 UI (애널리스트 감성):
+- “보고서 톤” 선택: [Conservative / Neutral / Aggressive] (문체와 강조점만 변경)
+- “체크리스트 깊이” 선택: [Lite / Standard / Deep]
+
+────────────────────────────
+[PDF]
+
+WeasyPrint 우선 사용.
+설치 문제 발생 시 HTML은 반드시 동작하게 설계.
+README에 PDF 옵션 안내 포함.
+
+────────────────────────────
+[LLM 설계]
+
+- packages/core/llm_client.py 에서만 LLM 호출
+- generate_text(system_prompt, user_prompt) 함수 제공
+- 예외처리 필수
+- 모든 Agent는 이 함수만 사용
+
+────────────────────────────
+[작업 순서]
+
+1) 전체 레포 구조 생성
+2) 모든 파일 코드 작성
+3) requirements.txt 작성
+4) README.md 작성 (실행법 + 시연 시나리오 + Analyst Workflow 설명)
+5) import/path 오류 제거
+
+────────────────────────────
+[마지막에 반드시 출력]
+
+1) 생성된 파일 트리
+2) 실행 명령어 (venv 생성부터 streamlit run까지)
+3) 데모 입력 예시 2개 (엑싯 선호 포함)
+4) "시연 포인트" 5줄 요약 (애널리스트가 왜 좋아하는지)
